@@ -6,7 +6,7 @@ import requests  # <--- NEW: To talk to your Render API
 import cv2
 from datetime import datetime
 from streamlit_js_eval import get_geolocation
-from frontend.pdf_utils import generate_road_report
+from pdf_utils import generate_road_report
 from dotenv import load_dotenv
 import os
 
