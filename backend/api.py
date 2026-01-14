@@ -53,9 +53,9 @@
 import cv2
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, Form, HTTPException
-from logic import process_frame
-from database import insert_log
-from geo_utils import get_location_details, get_municipal_authority
+from backend.logic import process_frame
+from backend.database import insert_log
+from backend.geo_utils import get_location_details, get_municipal_authority
 
 app = FastAPI(title="Road Condition API (Anti-Spam)")
 

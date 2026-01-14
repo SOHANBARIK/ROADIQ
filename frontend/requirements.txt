@@ -1,0 +1,7 @@
+streamlit
+streamlit-js-eval
+requests
+reportlab
+opencv-python-headless
+numpy
+pandas
