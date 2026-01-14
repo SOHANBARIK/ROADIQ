@@ -1,0 +1,12 @@
+processed_images/
+__pycache__/
+.env
+app1.py
+app2.py
+app3.py
+Report_003633.pdf
+Report_014141.pdf
+runs
+venv/
+road_monitoring.db
+.DS_Store
