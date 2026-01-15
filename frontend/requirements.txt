@@ -6,4 +6,4 @@ opencv-python-headless
 numpy
 pandas
 python-dotenv
-google-generative-ai>=0.7.0
+google-genai

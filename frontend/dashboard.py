@@ -9,7 +9,9 @@ from streamlit_js_eval import get_geolocation
 from pdf_utils import generate_road_report
 from dotenv import load_dotenv
 from PIL import Image, ImageFilter
-import google.generativeai as genai
+# import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 load_dotenv()
 
@@ -59,31 +61,34 @@ def generate_fixed_road_image(original_image):
     if not GEMINI_API_KEY:
         return None, "AI Module Not Configured"
 
-    model = genai.GenerativeModel('gemini-1.5-pro-latest')
+    # --- NEW CLIENT INITIALIZATION ---
+    client = genai.Client(api_key=GEMINI_API_KEY)
     
     try:
         # Step 1: Strict Validation & Analysis
-        response = model.generate_content([
-            """
-            Analyze this image strictly. 
-            1. Does this image contain a road, street, or pavement? Answer YES or NO.
-            2. If YES, describe the damage (potholes, cracks) in one short sentence.
-            3. If NO, reply with 'INVALID_IMAGE'.
-            """,
-            original_image
-        ])
+        # Note: The new SDK uses 'models.generate_content'
+        response = client.models.generate_content(
+            model='gemini-2.0-flash',  # Use the newer model
+            contents=[
+                """
+                Analyze this image strictly. 
+                1. Does this image contain a road, street, or pavement? Answer YES or NO.
+                2. If YES, describe the damage (potholes, cracks) in one short sentence.
+                3. If NO, reply with 'INVALID_IMAGE'.
+                """,
+                original_image
+            ]
+        )
         
         analysis = response.text.strip()
         
         if "INVALID_IMAGE" in analysis or "NO" in analysis.split('\n')[0]:
             return None, "No road detected in image. AI repair skipped."
 
-        # Step 2: Extract Repair Plan (everything after the YES/NO check)
+        # Step 2: Extract Repair Plan
         repair_plan = analysis.replace("YES", "").strip()
         
         # Step 3: Simulate Repair (Visual Placeholder)
-        # Since standard Gemini API doesn't do in-painting yet, we simulate a "smooth" road
-        # by applying a heavy blur to damage spots or the whole image for the demo.
         fixed_image = original_image.filter(ImageFilter.GaussianBlur(radius=3))
         
         return fixed_image, repair_plan
