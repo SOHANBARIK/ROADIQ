@@ -59,7 +59,7 @@ def generate_fixed_road_image(original_image):
     if not GEMINI_API_KEY:
         return None, "AI Module Not Configured"
 
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    model = genai.GenerativeModel('gemini-1.5-pro-latest')
     
     try:
         # Step 1: Strict Validation & Analysis
