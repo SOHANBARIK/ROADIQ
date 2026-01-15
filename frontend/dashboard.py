@@ -101,7 +101,7 @@ with tabs[1]:
             lat = st.session_state['lat_input']
             lng = st.session_state['lng_input']
             
-            st.text(f"Coordinates: {lat}, {lng}")
+            st.text(f"Coordinates:\n {lat}\n {lng}")
 
         st.divider()
         uploaded_file = st.file_uploader("Upload Evidence", type=['jpg', 'jpeg', 'png'])
