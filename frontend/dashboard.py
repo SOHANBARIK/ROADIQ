@@ -57,13 +57,16 @@ with tabs[0]:
                 df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
                 df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
                 map_data = df[(df['lat'] != 0) & (df['lon'] != 0)]
-                st.map(map_data, zoom=4)
+                st.map(map_data, zoom=3) # Kept zoom at 12 for better city view
                 
                 st.subheader("📋 Incident Log")
                 
-                # --- UPDATED TABLE COLUMNS ---
-                # 1. Rename columns for better readability
-                # These keys must match what 'api.py' returns in /get-map-data
+                # --- DATA TRANSFORMATION ---
+                # 1. Convert Damage (0/1) to "Yes"/"No" text
+                if 'damage' in df.columns:
+                    df['damage'] = df['damage'].apply(lambda x: "Yes" if x else "No")
+
+                # 2. Rename columns for display
                 display_df = df.rename(columns={
                     "timestamp": "Time",
                     "priority": "Priority Level",
@@ -74,31 +77,30 @@ with tabs[0]:
                     "lon": "Longitude"
                 })
                 
-                # 2. Select the columns to display (in order)
+                # 3. Define the exact order of columns
                 target_cols = [
                     "Time", 
                     "Priority Level", 
+                    "Damage Detected",      # Moved here for better visibility
                     "Municipal Authority", 
                     "Incident Location", 
-                    "Damage Detected", 
                     "Latitude", 
                     "Longitude"
                 ]
                 
-                # Filter to ensure we only try to show columns that actually exist
+                # 4. Filter to ensure columns exist
                 available_cols = [c for c in target_cols if c in display_df.columns]
                 
-                # 3. Display the dataframe with formatting
+                # 5. Display Table
                 st.dataframe(
                     display_df[available_cols], 
                     use_container_width=True,
-                    hide_index=True,  # Removes the 0, 1, 2 index column
+                    hide_index=True,
                     column_config={
                         "Time": st.column_config.DatetimeColumn(format="D MMM YYYY, h:mm a"),
-                        "Damage Detected": st.column_config.CheckboxColumn(
-                            "Damage?", default=False
-                        ),
                         "Incident Location": st.column_config.TextColumn(width="large"),
+                        "Municipal Authority": st.column_config.TextColumn(width="medium"),
+                        # No special config needed for "Damage Detected" since it is now just text
                     }
                 )
 
