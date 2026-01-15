@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import requests
 import os
+import uuid  # <--- NEW IMPORT for Random IDs
 from datetime import datetime
 from streamlit_js_eval import get_geolocation
 from pdf_utils import generate_road_report
@@ -52,13 +53,21 @@ with tabs[0]:
                 
                 st.divider()
                 st.subheader("📍 Live Incident Map")
+                
                 df['lat'] = pd.to_numeric(df['lat'], errors='coerce')
                 df['lon'] = pd.to_numeric(df['lon'], errors='coerce')
                 map_data = df[(df['lat'] != 0) & (df['lon'] != 0)]
-                st.map(map_data)
+                st.map(map_data, zoom=10)
                 
                 st.subheader("📋 Incident Log")
-                st.dataframe(df[['timestamp', 'priority', 'lat', 'lon']])
+                
+                # --- UPDATED TABLE COLUMNS ---
+                # Added 'address' and reordered columns
+                cols_to_show = ['timestamp', 'priority', 'authority', 'address', 'lat', 'lon']
+                
+                # Verify columns exist before showing to prevent errors
+                available_cols = [c for c in cols_to_show if c in df.columns]
+                st.dataframe(df[available_cols], use_container_width=True)
             else:
                 st.info("No incidents reported yet.")
         else:
@@ -92,7 +101,7 @@ with tabs[1]:
             lat = st.session_state['lat_input']
             lng = st.session_state['lng_input']
             
-            st.text(f"Coordinates:\n Latitude: {lat}\n Longitude: {lng}")
+            st.text(f"Coordinates: {lat}, {lng}")
 
         st.divider()
         uploaded_file = st.file_uploader("Upload Evidence", type=['jpg', 'jpeg', 'png'])
@@ -121,11 +130,14 @@ with tabs[1]:
                                 
                                 # --- PDF GENERATION ---
                                 try:
-                                    # Save temp image for PDF
                                     image.save("temp_cam.jpg")
                                     
+                                    # --- RANDOM ID GENERATION ---
+                                    random_id = uuid.uuid4().hex[:8].upper()
+                                    report_id_str = f"RPT-{random_id} (Live Report)"
+                                    
                                     report_data = {
-                                        "id": "LIVE-REPORT",
+                                        "id": report_id_str,  # <--- Random ID + Label
                                         "timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                                         "address": result.get("location", "Unknown"),
                                         "lat": lat, "lng": lng,
@@ -135,7 +147,7 @@ with tabs[1]:
                                         "image_path": "temp_cam.jpg"
                                     }
                                     
-                                    pdf_filename = f"Report_{datetime.now().strftime('%H%M%S')}.pdf"
+                                    pdf_filename = f"Report_{random_id}.pdf"
                                     generate_road_report(report_data, pdf_filename)
                                     
                                     with open(pdf_filename, "rb") as f:

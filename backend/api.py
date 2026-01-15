@@ -20,7 +20,7 @@ app.add_middleware(
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the Smart Road Monitoring System API"}
+    return {"status": "API is running"}
 
 @app.get("/get-map-data")
 def get_map_data():
@@ -28,7 +28,9 @@ def get_map_data():
         conn = sqlite3.connect(DB_NAME)
         conn.row_factory = sqlite3.Row
         cursor = conn.cursor()
-        cursor.execute("SELECT id, timestamp, priority_level, damage_detected, latitude, longitude, filename FROM road_logs ORDER BY id DESC")
+        
+        # --- UPDATED QUERY: Added 'address' ---
+        cursor.execute("SELECT id, timestamp, priority_level, damage_detected, latitude, longitude, municipal_authority, address FROM road_logs ORDER BY id DESC")
         rows = cursor.fetchall()
         conn.close()
         
@@ -40,7 +42,9 @@ def get_map_data():
                 "priority": row["priority_level"],
                 "lat": row["latitude"],
                 "lon": row["longitude"],
-                "damage": 1 if row["damage_detected"] else 0
+                "damage": 1 if row["damage_detected"] else 0,
+                "authority": row["municipal_authority"],
+                "address": row["address"] # <--- NEW FIELD
             })
         return results
     except Exception as e:
@@ -61,7 +65,6 @@ async def report_incident(
     try:
         in_india, address, city = get_location_details(latitude, longitude)
     except Exception:
-        # Fallback if geo_utils fails
         in_india, address, city = True, "Unknown Location", "Unknown City"
 
     # 3. Process Image
